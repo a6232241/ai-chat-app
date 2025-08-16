@@ -9,7 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.a55663340.ai-chat-app",
+      "appleTeamId": "854H39T4U5"
     },
     "android": {
       "adaptiveIcon": {
