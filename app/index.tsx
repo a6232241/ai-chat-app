@@ -1,13 +1,16 @@
 import { MessageType, postMessageToChat } from "@/apis";
 import Message from "@/components/Message";
+import { useRootScreenContext } from "@/hooks/useRootScreenContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type MessageWithTimestamp = MessageType & { created: number };
+
+const convId = `conv_${Date.now()}`;
 
 export default function Index() {
   const [message, setMessage] = useState("");
@@ -15,10 +18,12 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const headerHeight = useHeaderHeight();
   const params = useLocalSearchParams<{ id: string }>();
-  const [convId, setConvId] = useState<string | null>(null);
+  const { setSelectedConversationId, setConversations } = useRootScreenContext();
 
   const send = async () => {
     if (!message.trim()) return;
+
+    if (!params?.id) router.setParams({ id: convId });
 
     try {
       let userMessage: MessageWithTimestamp = { role: "user", content: message.trim(), created: Date.now() };
@@ -31,29 +36,33 @@ export default function Index() {
       let aiMessage: MessageWithTimestamp = { ...response.choices[0].message, created: response.created };
       setMessages((prev) => [...prev, aiMessage]);
 
-      setStorageForSend([...messages, userMessage, aiMessage]);
+      updateStorageAndRouterPoint([...messages, userMessage, aiMessage]);
     } catch (error) {
       console.log("Error:", error);
       setLoading(false);
     }
   };
 
-  const setStorageForSend = async (_message: MessageWithTimestamp[]) => {
+  const updateStorageAndRouterPoint = async (_message: MessageWithTimestamp[]) => {
     const id = params?.id ?? convId;
-    if (id) await AsyncStorage.setItem(id, JSON.stringify(_message));
-    else {
-      const convId = `conv_${Date.now()}`;
-      setConvId(convId);
-      await AsyncStorage.setItem(convId, JSON.stringify(_message));
+    if (!id) return;
 
+    const hasMessages = await AsyncStorage.getItem(id);
+    if (!hasMessages) {
       const conversationsStore = await AsyncStorage.getItem("conversations");
-      if (conversationsStore)
+      if (conversationsStore) {
         await AsyncStorage.setItem(
           "conversations",
-          JSON.stringify([...JSON.parse(conversationsStore), { id: convId, title: message.trim() }]),
+          JSON.stringify([...JSON.parse(conversationsStore), { id, title: message.trim() }]),
         );
-      else await AsyncStorage.setItem("conversations", JSON.stringify([{ id: convId, title: message.trim() }]));
+      } else {
+        await AsyncStorage.setItem("conversations", JSON.stringify([{ id, title: message.trim() }]));
+      }
+      setConversations((prev) => [...prev, { id, title: message.trim() }]);
+      setSelectedConversationId(id);
     }
+
+    await AsyncStorage.setItem(id, JSON.stringify(_message));
   };
 
   useEffect(() => {
@@ -62,7 +71,6 @@ export default function Index() {
       else {
         const storedMessages = await AsyncStorage.getItem(params?.id);
         if (storedMessages) setMessages(JSON.parse(storedMessages));
-        else setMessages([]);
       }
     })();
   }, [params?.id]);

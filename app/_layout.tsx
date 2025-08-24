@@ -1,3 +1,4 @@
+import { RootScreenContext } from "@/hooks/useRootScreenContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { Drawer } from "expo-router/drawer";
@@ -17,41 +18,47 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <GestureHandlerRootView>
-        <Drawer
-          drawerContent={(props) => (
-            <DrawerContentScrollView {...props}>
-              <DrawerItem
-                key={"index"}
-                label={"New"}
-                onPress={() => {
-                  props.navigation.navigate("index");
-                  setSelectedConversationId(null);
-                }}
-                focused={selectedConversationId === null}
-              />
-              {conversations.map((conversation) => (
+    <RootScreenContext.Provider
+      value={{
+        setConversations,
+        setSelectedConversationId,
+      }}>
+      <SafeAreaProvider>
+        <GestureHandlerRootView>
+          <Drawer
+            drawerContent={(props) => (
+              <DrawerContentScrollView {...props}>
                 <DrawerItem
-                  key={conversation.id}
-                  label={conversation.title}
+                  key={"index"}
+                  label={"New"}
                   onPress={() => {
-                    props.navigation.navigate("index", { id: conversation.id });
-                    setSelectedConversationId(conversation.id);
+                    props.navigation.navigate("index");
+                    setSelectedConversationId(null);
                   }}
-                  focused={selectedConversationId === conversation.id}
+                  focused={selectedConversationId === null}
                 />
-              ))}
-            </DrawerContentScrollView>
-          )}>
-          <Drawer.Screen
-            name="index"
-            options={{
-              title: "Chat",
-            }}
-          />
-        </Drawer>
-      </GestureHandlerRootView>
-    </SafeAreaProvider>
+                {conversations.map((conversation) => (
+                  <DrawerItem
+                    key={conversation.id}
+                    label={conversation.title}
+                    onPress={() => {
+                      props.navigation.navigate("index", { id: conversation.id });
+                      setSelectedConversationId(conversation.id);
+                    }}
+                    focused={selectedConversationId === conversation.id}
+                  />
+                ))}
+              </DrawerContentScrollView>
+            )}>
+            <Drawer.Screen
+              name="index"
+              options={{
+                title: "Chat",
+              }}
+            />
+          </Drawer>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </RootScreenContext.Provider>
   );
 }
