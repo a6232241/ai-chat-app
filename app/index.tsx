@@ -1,11 +1,13 @@
 import { MessageType, postMessageToChat } from "@/apis";
+import ChatInput from "@/components/ChatInput";
 import Message from "@/components/Message";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 import { useRootScreenContext } from "@/hooks/useRootScreenContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { FlatList, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type MessageWithTimestamp = MessageType & { created: number };
@@ -19,6 +21,8 @@ export default function Index() {
   const headerHeight = useHeaderHeight();
   const params = useLocalSearchParams<{ id: string }>();
   const { setSelectedConversationId, setConversations } = useRootScreenContext();
+  const listRef = useRef<FlatList<MessageWithTimestamp>>(null);
+  const [isShowScrollToTopButton, setIsShowScrollToTopButton] = useState(false);
 
   const send = async () => {
     if (!message.trim()) return;
@@ -65,6 +69,14 @@ export default function Index() {
     await AsyncStorage.setItem(id, JSON.stringify(_message));
   };
 
+  const scrollToTop = () => listRef.current?.scrollToOffset({ animated: true, offset: 0 });
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (listRef.current) {
+      setIsShowScrollToTopButton(event?.nativeEvent.contentOffset.y > 300);
+    }
+  };
+
   useEffect(() => {
     (async () => {
       if (!params?.id) setMessages([]);
@@ -74,6 +86,10 @@ export default function Index() {
       }
     })();
   }, [params?.id]);
+
+  useEffect(() => {
+    scrollToTop();
+  }, [messages]);
 
   return (
     <SafeAreaView
@@ -87,44 +103,18 @@ export default function Index() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={headerHeight}>
         <FlatList
-          data={messages}
+          data={[...messages].reverse()}
           renderItem={({ item }) => <Message data={item} />}
           keyExtractor={(item) => item.created.toString()}
           contentContainerStyle={{ gap: 10, padding: 10 }}
-          ListFooterComponent={<>{loading && <Text>AI thinking...</Text>}</>}
+          ListHeaderComponent={<>{loading && <Text>AI thinking...</Text>}</>}
+          ref={listRef}
+          inverted
+          onScroll={handleScroll}
         />
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-            paddingVertical: 5,
-            paddingHorizontal: 10,
-            maxHeight: 100,
-          }}>
-          <TextInput
-            placeholder="Type your message..."
-            style={{
-              flex: 1,
-              padding: 10,
-              borderWidth: 1,
-              borderColor: "#ccc",
-              borderRadius: 5,
-            }}
-            value={message}
-            onChangeText={setMessage}
-            multiline
-          />
-          <Pressable
-            onPress={send}
-            style={{
-              padding: 10,
-              borderRadius: 5,
-              backgroundColor: "#007AFF",
-            }}>
-            <Text style={{ color: "#fff" }}>Send</Text>
-          </Pressable>
-        </View>
+        <ChatInput value={message} onChangeText={setMessage} onPress={send} />
+
+        {isShowScrollToTopButton && <ScrollToTopButton onPress={scrollToTop} />}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
