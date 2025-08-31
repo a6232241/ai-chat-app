@@ -1,4 +1,6 @@
-import { createContext, useContext } from "react";
+import { ConversationType } from "@/type/conversation";
+import { apis } from "@/utils/sqlite/apis";
+import { createContext, useContext, useEffect, useState } from "react";
 
 type DefaultValue = {
   setConversations: React.Dispatch<React.SetStateAction<{ id: string; title: string }[]>>;
@@ -15,3 +17,43 @@ const RootScreenContext = createContext<DefaultValue>(defaultValue);
 const useRootScreenContext = () => useContext(RootScreenContext);
 
 export { RootScreenContext, useRootScreenContext };
+
+type Props = {
+  children: ({
+    conversations,
+    selectedConversationId,
+    setSelectedConversationId,
+  }: {
+    conversations: ConversationType[];
+    selectedConversationId: string | null;
+    setSelectedConversationId: React.Dispatch<React.SetStateAction<string | null>>;
+  }) => React.ReactNode;
+};
+
+const RootScreenProvider = ({ children }: Props) => {
+  const [conversations, setConversations] = useState<ConversationType[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const conversations = await apis.getConversations();
+      setConversations(conversations);
+    })();
+  }, []);
+
+  return (
+    <RootScreenContext.Provider
+      value={{
+        setConversations,
+        setSelectedConversationId,
+      }}>
+      {children({
+        conversations,
+        selectedConversationId,
+        setSelectedConversationId,
+      })}
+    </RootScreenContext.Provider>
+  );
+};
+
+export default RootScreenProvider;

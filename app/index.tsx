@@ -1,8 +1,10 @@
-import { MessageType, postMessageToChat } from "@/apis";
+import { postMessageToChat } from "@/apis";
 import ChatInput from "@/components/ChatInput";
 import Message from "@/components/Message";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 import { useRootScreenContext } from "@/hooks/useRootScreenContext";
+import { MessageWithTimestampType } from "@/type/conversation";
+import { apis } from "@/utils/sqlite/apis";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { router, useLocalSearchParams } from "expo-router";
@@ -10,18 +12,16 @@ import { useEffect, useRef, useState } from "react";
 import { FlatList, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type MessageWithTimestamp = MessageType & { created: number };
-
 const convId = `conv_${Date.now()}`;
 
 export default function Index() {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<MessageWithTimestamp[]>([]);
+  const [messages, setMessages] = useState<MessageWithTimestampType[]>([]);
   const [loading, setLoading] = useState(false);
   const headerHeight = useHeaderHeight();
   const params = useLocalSearchParams<{ id: string }>();
   const { setSelectedConversationId, setConversations } = useRootScreenContext();
-  const listRef = useRef<FlatList<MessageWithTimestamp>>(null);
+  const listRef = useRef<FlatList<MessageWithTimestampType>>(null);
   const [isShowScrollToTopButton, setIsShowScrollToTopButton] = useState(false);
 
   const send = async () => {
@@ -30,14 +30,14 @@ export default function Index() {
     if (!params?.id) router.setParams({ id: convId });
 
     try {
-      let userMessage: MessageWithTimestamp = { role: "user", content: message.trim(), created: Date.now() };
+      let userMessage: MessageWithTimestampType = { role: "user", content: message.trim(), created: Date.now() };
       setMessage("");
       setMessages((prev) => [...prev, userMessage]);
       setLoading(true);
 
       const response = await postMessageToChat({ role: userMessage.role, content: userMessage.content });
       setLoading(false);
-      let aiMessage: MessageWithTimestamp = { ...response.choices[0].message, created: response.created };
+      let aiMessage: MessageWithTimestampType = { ...response.choices[0].message, created: response.created };
       setMessages((prev) => [...prev, aiMessage]);
 
       updateStorageAndRouterPoint([...messages, userMessage, aiMessage]);
@@ -47,25 +47,15 @@ export default function Index() {
     }
   };
 
-  const updateStorageAndRouterPoint = async (_message: MessageWithTimestamp[]) => {
+  const updateStorageAndRouterPoint = async (_message: MessageWithTimestampType[]) => {
     const id = params?.id ?? convId;
     if (!id) return;
 
-    const hasMessages = await AsyncStorage.getItem(id);
-    if (!hasMessages) {
-      const conversationsStore = await AsyncStorage.getItem("conversations");
-      if (conversationsStore) {
-        await AsyncStorage.setItem(
-          "conversations",
-          JSON.stringify([...JSON.parse(conversationsStore), { id, title: message.trim() }]),
-        );
-      } else {
-        await AsyncStorage.setItem("conversations", JSON.stringify([{ id, title: message.trim() }]));
-      }
-      setConversations((prev) => [...prev, { id, title: message.trim() }]);
-      setSelectedConversationId(id);
-    }
+    await apis.putConversation({ id, title: message.trim() });
+    const conversations = await apis.getConversations();
+    setConversations(conversations);
 
+    setSelectedConversationId(id);
     await AsyncStorage.setItem(id, JSON.stringify(_message));
   };
 
