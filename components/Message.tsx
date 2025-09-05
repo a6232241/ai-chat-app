@@ -1,11 +1,11 @@
-import { MessageType } from "@/apis";
+import { MessageType } from "@/utils/Apis/Sqlite/Message/types";
 import * as Clipboard from "expo-clipboard";
 import React from "react";
 import { NativeSyntheticEvent, Platform, Text, View } from "react-native";
 import ContextMenu, { ContextMenuOnPressNativeEvent } from "react-native-context-menu-view";
 
 type Props = {
-  data: MessageType;
+  data: Pick<MessageType, "role" | "content">;
 };
 
 const actions = [{ title: "複製" }];

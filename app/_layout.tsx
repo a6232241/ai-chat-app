@@ -30,17 +30,17 @@ export default function RootLayout() {
                           key={"index"}
                           label={"New"}
                           onPress={() => {
-                            props.navigation.navigate("index");
+                            props.navigation.navigate("index", { id: `conv_${Date.now()}` });
                             setSelectedConversationId(null);
                           }}
                           focused={selectedConversationId === null}
                         />
-                        {[...conversations].reverse().map((conversation) => (
+                        {conversations.map((conversation) => (
                           <DrawerItem
                             key={conversation.id}
                             label={conversation.title}
                             onPress={() => {
-                              props.navigation.navigate("index", { id: conversation.id });
+                              props.navigation.navigate("index", { ...conversation });
                               setSelectedConversationId(conversation.id);
                             }}
                             focused={selectedConversationId === conversation.id}
@@ -53,6 +53,7 @@ export default function RootLayout() {
                       options={{
                         title: "Chat",
                       }}
+                      initialParams={{ id: `conv_${Date.now()}` }}
                     />
                   </Drawer>
                 </GestureHandlerRootView>

@@ -1,5 +1,5 @@
 import { ConversationType } from "@/type/conversation";
-import { apis } from "@/utils/sqlite/apis";
+import Apis from "@/utils/Apis";
 import { createContext, useContext, useEffect, useState } from "react";
 
 type DefaultValue = {
@@ -36,7 +36,7 @@ const RootScreenProvider = ({ children }: Props) => {
 
   useEffect(() => {
     (async () => {
-      const conversations = await apis.getConversations();
+      const conversations = await Apis.sqlite.conversation.getConversations();
       setConversations(conversations);
     })();
   }, []);
