@@ -5,15 +5,19 @@ import { NativeSyntheticEvent, Platform, Text, View } from "react-native";
 import ContextMenu, { ContextMenuOnPressNativeEvent } from "react-native-context-menu-view";
 
 type Props = {
-  data: Pick<MessageType, "role" | "content">;
+  data: Pick<MessageType, "role" | "content" | "id">;
+  deleteMessage: (id: string) => Promise<void>;
 };
 
-const actions = [{ title: "複製" }];
+const actions = [{ title: "複製" }, { title: "刪除" }];
 
-const Message: React.FC<Props> = ({ data: { role, content } }) => {
+const Message: React.FC<Props> = ({ data: { role, content, id }, deleteMessage }) => {
   const handlePress = async (e: NativeSyntheticEvent<ContextMenuOnPressNativeEvent>) => {
     if (e.nativeEvent.index === 0) {
       await Clipboard.setStringAsync(content);
+    }
+    if (e.nativeEvent.index === 1) {
+      await deleteMessage(id);
     }
   };
 

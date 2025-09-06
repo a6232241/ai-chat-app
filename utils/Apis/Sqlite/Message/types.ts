@@ -4,8 +4,9 @@ type MessageType = {
   role: "user" | "assistant";
   content: string;
   created: number;
+  isDeleted: number;
 };
-type PostMessageRequire = MessageType;
+type PostMessageRequire = Omit<MessageType, "isDeleted">;
 type GetMessageResponse = Omit<MessageType, "conversationId">;
 
 export type { GetMessageResponse, MessageType, PostMessageRequire };

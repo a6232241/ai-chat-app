@@ -30,6 +30,7 @@ export default function Index() {
         role: "user",
         content: message.trim(),
         created: Date.now(),
+        isDeleted: 0,
       };
       setMessage("");
       setMessages((prev) => [userMessage, ...prev]);
@@ -44,6 +45,7 @@ export default function Index() {
         ...response.choices[0].message,
         created: response.created,
         id: response.id,
+        isDeleted: 0,
       };
       setMessages((prev) => [aiMessage, ...prev]);
 
@@ -69,6 +71,15 @@ export default function Index() {
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (listRef.current) {
       setIsShowScrollToTopButton(event?.nativeEvent.contentOffset.y > 300);
+    }
+  };
+
+  const deleteMessage = async (id: string) => {
+    try {
+      setMessages((prev) => prev.filter((msg) => msg.id !== id));
+      await Apis.sqlite.message.deleteMessages(id);
+    } catch (error) {
+      console.error("Error deleting message:", error);
     }
   };
 
@@ -102,8 +113,8 @@ export default function Index() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={headerHeight}>
         <FlatList
-          data={messages}
-          renderItem={({ item }) => <Message data={item} />}
+          data={messages.filter((msg) => msg.isDeleted === 0)}
+          renderItem={({ item }) => <Message data={item} deleteMessage={deleteMessage} />}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ gap: 10, padding: 10, flexGrow: 1, justifyContent: "flex-end" }}
           ListHeaderComponent={<>{loading && <Text>AI thinking...</Text>}</>}

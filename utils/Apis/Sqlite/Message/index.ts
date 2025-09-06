@@ -46,7 +46,7 @@ class Message extends Config {
   async getMessages(conversationId: string): Promise<GetMessageResponse[]> {
     try {
       const result = await this.db.getAllAsync(
-        `SELECT id, role, content, created FROM messages WHERE conversation_id = ? ORDER BY created DESC`,
+        `SELECT id, role, content, created, is_deleted as isDeleted FROM messages WHERE conversation_id = ? ORDER BY created DESC`,
         conversationId,
       );
       if (!result) return [];
@@ -54,6 +54,14 @@ class Message extends Config {
     } catch (error) {
       console.error("Error getting messages:", error);
       return [];
+    }
+  }
+
+  async deleteMessages(messageId: string): Promise<void> {
+    try {
+      await this.db.runAsync(`UPDATE messages SET is_deleted = 1, deleted = CURRENT_TIMESTAMP WHERE id = ?`, messageId);
+    } catch (error) {
+      console.error("Error deleting message:", error);
     }
   }
 }
