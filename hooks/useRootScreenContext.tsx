@@ -21,10 +21,12 @@ export { RootScreenContext, useRootScreenContext };
 type Props = {
   children: ({
     conversations,
+    setConversations,
     selectedConversationId,
     setSelectedConversationId,
   }: {
     conversations: ConversationType[];
+    setConversations: React.Dispatch<React.SetStateAction<ConversationType[]>>;
     selectedConversationId: string | null;
     setSelectedConversationId: React.Dispatch<React.SetStateAction<string | null>>;
   }) => React.ReactNode;
@@ -49,6 +51,7 @@ const RootScreenProvider = ({ children }: Props) => {
       }}>
       {children({
         conversations,
+        setConversations,
         selectedConversationId,
         setSelectedConversationId,
       })}

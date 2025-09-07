@@ -17,9 +17,14 @@ class Conversation extends Config {
     }
   }
 
-  async getConversations(): Promise<GetConversationResponse[]> {
+  async getConversations(searchText?: string): Promise<GetConversationResponse[]> {
     try {
-      const result = await this.db.getAllAsync(`SELECT * FROM conversations ORDER BY updated DESC`);
+      const result = searchText
+        ? await this.db.getAllAsync(
+            `SELECT * FROM conversations WHERE title LIKE ? ORDER BY updated DESC`,
+            `%${searchText}%`,
+          )
+        : await this.db.getAllAsync(`SELECT * FROM conversations ORDER BY updated DESC`);
 
       if (!result) return [];
       return result as GetConversationResponse[];

@@ -1,4 +1,5 @@
 import * as SQLite from "expo-sqlite";
+import { migrateDbIfNeeded } from "../sqlite/init";
 import GitHubModel from "./GitHubModel";
 import Sqlite from "./Sqlite";
 
@@ -15,6 +16,7 @@ class Apis {
   githubModel: GitHubModel;
 
   constructor() {
+    migrateDbIfNeeded(this.db);
     this.sqlite = new Sqlite(this.db);
     this.githubModel = new GitHubModel(this.header);
   }
