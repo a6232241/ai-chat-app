@@ -35,6 +35,9 @@ const DrawerContent = ({
           borderColor: "#ccc",
           borderRadius: 5,
           color,
+          fontSize: 16,
+          lineHeight: 24,
+          height: 24 + 20,
         }}
         placeholder="Search"
         onChangeText={async (text: string) => {

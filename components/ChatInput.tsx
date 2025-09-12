@@ -33,6 +33,8 @@ const ChatInput: React.FC<Props> = ({ value, onChangeText, onPress }) => {
             borderColor: "#ccc",
             borderRadius: 5,
             color,
+            fontSize: 16,
+            lineHeight: 24,
           }}
           value={value}
           onChangeText={onChangeText}
