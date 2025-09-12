@@ -1,4 +1,5 @@
 import { MessageType } from "@/utils/Apis/Sqlite/Message/types";
+import { useTheme } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
 import React from "react";
 import { NativeSyntheticEvent, Platform, Text, View } from "react-native";
@@ -12,6 +13,10 @@ type Props = {
 const actions = [{ title: "複製" }, { title: "刪除" }];
 
 const Message: React.FC<Props> = ({ data: { role, content, id }, deleteMessage }) => {
+  const {
+    colors: { text: color, primary },
+  } = useTheme();
+
   const handlePress = async (e: NativeSyntheticEvent<ContextMenuOnPressNativeEvent>) => {
     if (e.nativeEvent.index === 0) {
       await Clipboard.setStringAsync(content);
@@ -34,7 +39,8 @@ const Message: React.FC<Props> = ({ data: { role, content, id }, deleteMessage }
             style={{
               padding: 10,
               borderRadius: 5,
-              ...(role === "user" && { maxWidth: "80%", backgroundColor: "#ccc" }),
+              color,
+              ...(role === "user" && { maxWidth: "80%", backgroundColor: primary }),
             }}>
             {content}
           </Text>
@@ -51,7 +57,8 @@ const Message: React.FC<Props> = ({ data: { role, content, id }, deleteMessage }
               style={{
                 padding: 10,
                 borderRadius: 5,
-                ...(role === "user" && { maxWidth: "80%", backgroundColor: "#ccc" }),
+                color,
+                ...(role === "user" && { maxWidth: "80%", backgroundColor: primary }),
               }}>
               {content}
             </Text>

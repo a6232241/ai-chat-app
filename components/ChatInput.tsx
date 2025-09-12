@@ -1,3 +1,4 @@
+import { useTheme } from "@react-navigation/native";
 import React from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
@@ -8,6 +9,10 @@ type Props = {
 };
 
 const ChatInput: React.FC<Props> = ({ value, onChangeText, onPress }) => {
+  const {
+    colors: { text: color, primary },
+  } = useTheme();
+
   return (
     <>
       <View
@@ -27,6 +32,7 @@ const ChatInput: React.FC<Props> = ({ value, onChangeText, onPress }) => {
             borderWidth: 1,
             borderColor: "#ccc",
             borderRadius: 5,
+            color,
           }}
           value={value}
           onChangeText={onChangeText}
@@ -37,9 +43,9 @@ const ChatInput: React.FC<Props> = ({ value, onChangeText, onPress }) => {
           style={{
             padding: 10,
             borderRadius: 5,
-            backgroundColor: "#007AFF",
+            backgroundColor: primary,
           }}>
-          <Text style={{ color: "#fff" }}>Send</Text>
+          <Text style={{ color }}>Send</Text>
         </Pressable>
       </View>
     </>

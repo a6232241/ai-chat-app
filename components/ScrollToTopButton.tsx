@@ -1,28 +1,33 @@
 import ArrowCircleDownIcon from "@/assets/icons/arrow_circle_down.svg";
+import { useTheme } from "@react-navigation/native";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable } from "react-native";
 
 type Props = {
   onPress: () => void;
 };
 
 const ScrollToTopButton: React.FC<Props> = ({ onPress }) => {
+  const {
+    colors: { text: color, background: backgroundColor },
+  } = useTheme();
+
   return (
     <>
-      <View
+      <Pressable
+        onPress={onPress}
         style={{
           position: "absolute",
           bottom: 80,
           right: 20,
           width: 50,
           height: 50,
-          backgroundColor: "white",
+          backgroundColor,
           borderRadius: 25,
+          overflow: "hidden",
         }}>
-        <Pressable onPress={onPress} style={{ width: "100%", height: "100%" }}>
-          <ArrowCircleDownIcon width={"100%"} height={"100%"} color={"black"} />
-        </Pressable>
-      </View>
+        <ArrowCircleDownIcon width={"100%"} height={"100%"} color={color} />
+      </Pressable>
     </>
   );
 };

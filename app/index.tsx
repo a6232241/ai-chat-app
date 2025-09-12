@@ -6,6 +6,7 @@ import { ConversationType } from "@/type/conversation";
 import Apis from "@/utils/Apis";
 import { GetMessageResponse } from "@/utils/Apis/Sqlite/Message/types";
 import { useHeaderHeight } from "@react-navigation/elements";
+import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { FlatList, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, Text } from "react-native";
@@ -20,6 +21,9 @@ export default function Index() {
   const { setSelectedConversationId, setConversations } = useRootScreenContext();
   const listRef = useRef<FlatList<GetMessageResponse>>(null);
   const [isShowScrollToTopButton, setIsShowScrollToTopButton] = useState(false);
+  const {
+    colors: { background: backgroundColor, text: color },
+  } = useTheme();
 
   const send = async () => {
     if (!message.trim()) return;
@@ -105,7 +109,7 @@ export default function Index() {
     <SafeAreaView
       style={{
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor,
       }}
       edges={["bottom", "left", "right"]}>
       <KeyboardAvoidingView
@@ -117,7 +121,7 @@ export default function Index() {
           renderItem={({ item }) => <Message data={item} deleteMessage={deleteMessage} />}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ gap: 10, padding: 10, flexGrow: 1, justifyContent: "flex-end" }}
-          ListHeaderComponent={<>{loading && <Text>AI thinking...</Text>}</>}
+          ListHeaderComponent={<>{loading && <Text style={{ color }}>AI thinking...</Text>}</>}
           ref={listRef}
           inverted
           onScroll={handleScroll}
