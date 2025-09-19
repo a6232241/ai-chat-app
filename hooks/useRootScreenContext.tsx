@@ -1,9 +1,9 @@
-import { ConversationType } from "@/type/conversation";
 import Apis from "@/utils/Apis";
+import { ConversationType } from "@/utils/Apis/Sqlite/Conversation/types";
 import { createContext, useContext, useEffect, useState } from "react";
 
 type DefaultValue = {
-  setConversations: React.Dispatch<React.SetStateAction<{ id: string; title: string }[]>>;
+  setConversations: React.Dispatch<React.SetStateAction<ConversationType[]>>;
   setSelectedConversationId: React.Dispatch<React.SetStateAction<string | null>>;
 };
 

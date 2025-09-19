@@ -1,12 +1,13 @@
 import Apis from "@/utils/Apis";
+import { ConversationType } from "@/utils/Apis/Sqlite/Conversation/types";
 import { DrawerContentComponentProps, DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { useTheme } from "@react-navigation/native";
 import { useRef, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
 
 type Props = {
-  conversations: any[];
-  setConversations: (conversations: any[]) => void;
+  conversations: ConversationType[];
+  setConversations: (conversations: ConversationType[]) => void;
   selectedConversationId: string | null;
   setSelectedConversationId: (id: string | null) => void;
 } & DrawerContentComponentProps;

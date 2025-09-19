@@ -2,12 +2,12 @@ import ChatInput from "@/components/ChatInput";
 import Message from "@/components/Message";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 import { useRootScreenContext } from "@/hooks/useRootScreenContext";
-import { ConversationType } from "@/type/conversation";
+import type { AppIndexParams } from "@/type/routeParams";
 import Apis from "@/utils/Apis";
 import { GetMessageResponse } from "@/utils/Apis/Sqlite/Message/types";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useTheme } from "@react-navigation/native";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { FlatList, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,7 +17,7 @@ export default function Index() {
   const [messages, setMessages] = useState<GetMessageResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const headerHeight = useHeaderHeight();
-  const params = useLocalSearchParams<ConversationType>();
+  const params = useLocalSearchParams<AppIndexParams>();
   const { setSelectedConversationId, setConversations } = useRootScreenContext();
   const listRef = useRef<FlatList<GetMessageResponse>>(null);
   const [isShowScrollToTopButton, setIsShowScrollToTopButton] = useState(false);
@@ -47,16 +47,17 @@ export default function Index() {
       setLoading(false);
       let aiMessage: GetMessageResponse = {
         ...response.choices[0].message,
-        created: response.created,
+        created: Date.now(),
         id: response.id,
         isDeleted: 0,
       };
       setMessages((prev) => [aiMessage, ...prev]);
 
       if (params?.id) {
-        const title = params?.title ?? messages[0]?.content?.trim().slice(0, 10) ?? message?.trim().slice(0, 10);
+        const title = params?.title ?? message?.trim();
         setConversations((prev) => [{ id: params.id, title }, ...prev.filter((conv) => conv.id !== params.id)]);
         setSelectedConversationId(params.id);
+        router.setParams({ id: params.id, title });
 
         await Apis.sqlite.conversation.putConversation({ id: params.id, title });
         await Apis.sqlite.message.postMessages([
