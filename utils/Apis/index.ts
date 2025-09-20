@@ -4,8 +4,8 @@ import GitHubModel from "./GitHubModel";
 import Sqlite from "./Sqlite";
 
 class Apis {
-  private db = SQLite.openDatabaseSync("ai-chat-app.db");
-  sqlite: Sqlite;
+  private db: SQLite.SQLiteDatabase | null = null;
+  sqlite: Sqlite | null = null;
 
   private header: RequestInit["headers"] = {
     Accept: "application/vnd.github+json",
@@ -16,9 +16,15 @@ class Apis {
   githubModel: GitHubModel;
 
   constructor() {
-    migrateDbIfNeeded(this.db);
-    this.sqlite = new Sqlite(this.db);
     this.githubModel = new GitHubModel(this.header);
+  }
+
+  async init() {
+    this.db = await SQLite.openDatabaseAsync("ai-chat-app.db");
+    const result = await migrateDbIfNeeded(this.db);
+
+    this.sqlite = new Sqlite(this.db);
+    return result;
   }
 }
 

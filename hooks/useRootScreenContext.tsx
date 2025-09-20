@@ -38,7 +38,7 @@ const RootScreenProvider = ({ children }: Props) => {
 
   useEffect(() => {
     (async () => {
-      const conversations = await Apis.sqlite.conversation.getConversations();
+      const conversations = (await Apis?.sqlite?.conversation.getConversations()) ?? [];
       setConversations(conversations);
     })();
   }, []);

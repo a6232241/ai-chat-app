@@ -59,8 +59,8 @@ export default function Index() {
         setSelectedConversationId(params.id);
         router.setParams({ id: params.id, title });
 
-        await Apis.sqlite.conversation.putConversation({ id: params.id, title });
-        await Apis.sqlite.message.postMessages([
+        await Apis?.sqlite?.conversation.putConversation({ id: params.id, title });
+        await Apis?.sqlite?.message.postMessages([
           { ...userMessage, conversationId: params.id },
           { ...aiMessage, conversationId: params.id },
         ]);
@@ -82,7 +82,7 @@ export default function Index() {
   const deleteMessage = async (id: string) => {
     try {
       setMessages((prev) => prev.filter((msg) => msg.id !== id));
-      await Apis.sqlite.message.deleteMessages(id);
+      await Apis?.sqlite?.message.deleteMessages(id);
     } catch (error) {
       console.error("Error deleting message:", error);
     }
@@ -93,7 +93,7 @@ export default function Index() {
       try {
         if (!params?.id) setMessages([]);
         else {
-          const storedMessages = await Apis.sqlite.message.getMessages(params.id);
+          const storedMessages = await Apis?.sqlite?.message.getMessages(params.id);
           if (storedMessages) setMessages(storedMessages);
         }
       } catch (error) {

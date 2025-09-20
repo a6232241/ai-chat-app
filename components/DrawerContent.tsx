@@ -25,6 +25,15 @@ const DrawerContent = ({
     colors: { text: color },
   } = useTheme();
 
+  const handleChangeText = async (text: string) => {
+    setSearchText(text);
+    delaySearch.current && clearTimeout(delaySearch.current);
+    delaySearch.current = setTimeout(async () => {
+      const _conversations = (await Apis?.sqlite?.conversation.getConversations(text)) ?? [];
+      setConversations(_conversations);
+    }, 300);
+  };
+
   return (
     <DrawerContentScrollView {...props}>
       <TextInput
@@ -41,14 +50,7 @@ const DrawerContent = ({
           height: 24 + 20,
         }}
         placeholder="Search"
-        onChangeText={async (text: string) => {
-          setSearchText(text);
-          delaySearch.current && clearTimeout(delaySearch.current);
-          delaySearch.current = setTimeout(async () => {
-            const _conversations = await Apis.sqlite.conversation.getConversations(text);
-            setConversations(_conversations);
-          }, 300);
-        }}
+        onChangeText={handleChangeText}
         value={searchText}
       />
       <DrawerItem
