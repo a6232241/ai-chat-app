@@ -74,8 +74,11 @@ export default function Index() {
   const scrollToTop = () => listRef.current?.scrollToOffset({ animated: true, offset: 0 });
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    // 立即提取事件數據以避免合成事件被回收
+    const offsetY = event.nativeEvent.contentOffset.y;
+
     if (listRef.current) {
-      setIsShowScrollToTopButton(event?.nativeEvent.contentOffset.y > 300);
+      setIsShowScrollToTopButton(offsetY > 300);
     }
   };
 

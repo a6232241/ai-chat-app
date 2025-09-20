@@ -18,10 +18,13 @@ const Message: React.FC<Props> = ({ data: { role, content, id }, deleteMessage }
   } = useTheme();
 
   const handlePress = async (e: NativeSyntheticEvent<ContextMenuOnPressNativeEvent>) => {
-    if (e.nativeEvent.index === 0) {
+    // 立即提取事件數據以避免合成事件被回收
+    const menuIndex = e.nativeEvent.index;
+
+    if (menuIndex === 0) {
       await Clipboard.setStringAsync(content);
     }
-    if (e.nativeEvent.index === 1) {
+    if (menuIndex === 1) {
       await deleteMessage(id);
     }
   };
