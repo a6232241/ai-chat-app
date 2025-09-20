@@ -18,7 +18,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.a55663340.aichatapp"
     },
     "web": {
       "bundler": "metro",
@@ -42,7 +43,9 @@
           "enableFTS": true,
           "useSQLCipher": true,
           "ios": {
-            "customBuildFlags": ["-DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_ENABLE_SNAPSHOT=1"]
+            "customBuildFlags": [
+              "-DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_ENABLE_SNAPSHOT=1"
+            ]
           }
         }
       ]
