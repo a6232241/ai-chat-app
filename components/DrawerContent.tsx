@@ -34,6 +34,16 @@ const DrawerContent = ({
     }, 300);
   };
 
+  const handleRedirectToNewConversation = () => {
+    props.navigation.navigate("index", { id: `conv_${Date.now()}` });
+    setSelectedConversationId(null);
+  };
+
+  const handleRedirectToExistingConversation = (conversation: ConversationType) => {
+    props.navigation.navigate("index", { ...conversation });
+    setSelectedConversationId(conversation.id);
+  };
+
   return (
     <DrawerContentScrollView {...props}>
       <TextInput
@@ -56,20 +66,14 @@ const DrawerContent = ({
       <DrawerItem
         key={"index"}
         label={"New"}
-        onPress={() => {
-          props.navigation.navigate("index", { id: `conv_${Date.now()}` });
-          setSelectedConversationId(null);
-        }}
+        onPress={handleRedirectToNewConversation}
         focused={selectedConversationId === null}
       />
       {conversations.map((conversation) => (
         <DrawerItem
           key={conversation.id}
           label={conversation.title}
-          onPress={() => {
-            props.navigation.navigate("index", { ...conversation });
-            setSelectedConversationId(conversation.id);
-          }}
+          onPress={() => handleRedirectToExistingConversation(conversation)}
           focused={selectedConversationId === conversation.id}
         />
       ))}

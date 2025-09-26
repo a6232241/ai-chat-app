@@ -1,5 +1,5 @@
 type PostMessageToChatBody = {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system" | "developer";
   content: string;
 };
 

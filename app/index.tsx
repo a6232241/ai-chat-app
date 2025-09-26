@@ -4,6 +4,7 @@ import ScrollToTopButton from "@/components/ScrollToTopButton";
 import { useRootScreenContext } from "@/hooks/useRootScreenContext";
 import type { AppIndexParams } from "@/type/routeParams";
 import Apis from "@/utils/Apis";
+import { PostMessageToChatBody } from "@/utils/Apis/GitHubModel/types";
 import { GetMessageResponse } from "@/utils/Apis/Sqlite/Message/types";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useTheme } from "@react-navigation/native";
@@ -31,7 +32,7 @@ export default function Index() {
     try {
       let userMessage: GetMessageResponse = {
         id: Date.now().toString(),
-        role: "user",
+        role: messages.length <= 0 ? "system" : "user",
         content: message.trim(),
         created: Date.now(),
         isDeleted: 0,
@@ -40,10 +41,15 @@ export default function Index() {
       setMessages((prev) => [userMessage, ...prev]);
       setLoading(true);
 
-      const response = await Apis.githubModel.postMessageToChat({
-        role: userMessage.role,
-        content: userMessage.content,
-      });
+      let sendMessages: PostMessageToChatBody[] = messages
+        .filter((msg) => msg.isDeleted === 0)
+        .map((value) => ({
+          role: value.role,
+          content: value.content,
+        }));
+      sendMessages.unshift({ role: userMessage.role, content: userMessage.content });
+      const response = await Apis.githubModel.postMessageToChat(sendMessages.reverse());
+
       setLoading(false);
       let aiMessage: GetMessageResponse = {
         ...response.choices[0].message,

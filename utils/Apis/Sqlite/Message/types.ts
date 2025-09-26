@@ -1,7 +1,7 @@
 type MessageType = {
   id: string;
   conversationId: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system" | "developer";
   content: string;
   created: number;
   isDeleted: number;
