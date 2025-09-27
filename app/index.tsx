@@ -13,9 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { FlatList, KeyboardAvoidingView, NativeScrollEvent, NativeSyntheticEvent, Platform, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type Messages = GetMessageResponse & {
-  status?: "error";
-};
+type Messages = GetMessageResponse;
 
 export default function Index() {
   const [message, setMessage] = useState("");
@@ -78,14 +76,17 @@ export default function Index() {
       router.setParams({ id: params.id, title });
 
       await Apis?.sqlite?.conversation.putConversation({ id: params.id, title });
-      await Apis?.sqlite?.message.postMessages([
-        { ...userMessage, conversationId: params.id },
-        { ...aiMessage, conversationId: params.id },
+      await Promise.all([
+        Apis?.sqlite?.message.putMessage({ ...userMessage, status: undefined, conversationId: params.id }),
+        Apis?.sqlite?.message.postMessage({ ...aiMessage, conversationId: params.id }),
       ]);
     } catch (error) {
       console.error("Error:", error);
       setLoading(false);
       setMessages((prev) => [{ ...userMessage, status: "error" }, ...prev.filter((msg) => msg.id !== userMessage.id)]);
+
+      if (!params?.id) return;
+      await Apis?.sqlite?.message.putMessage({ ...userMessage, status: "error", conversationId: params.id });
     }
   };
 

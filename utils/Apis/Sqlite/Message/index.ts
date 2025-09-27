@@ -1,17 +1,18 @@
 import Config from "../Config";
 import { formatterDate } from "./helper";
-import type { GetMessageResponse, PostMessageRequire } from "./types";
+import type { GetMessageResponse, PostMessageRequire, PutMessageRequire } from "./types";
 
 class Message extends Config {
   async postMessage(message: PostMessageRequire): Promise<void> {
     try {
       await this.db.runAsync(
-        `INSERT INTO messages (id, conversation_id, role, content, created) VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO messages (id, conversation_id, role, content, created, status) VALUES (?, ?, ?, ?, ?, ?)`,
         message.id,
         message.conversationId,
         message.role,
         message.content,
         formatterDate(message.created),
+        message.status ?? null,
       );
     } catch (error) {
       console.error("Error posting message:", error);
@@ -21,7 +22,7 @@ class Message extends Config {
   async postMessages(messages: PostMessageRequire[]): Promise<void> {
     try {
       const insert = await this.db.prepareAsync(
-        `INSERT INTO messages (id, conversation_id, role, content, created) VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO messages (id, conversation_id, role, content, created, status) VALUES (?, ?, ?, ?, ?, ?)`,
       );
       try {
         await Promise.all(
@@ -32,6 +33,7 @@ class Message extends Config {
               message.role,
               message.content,
               formatterDate(message.created),
+              message.status ?? null,
             ),
           ),
         );
@@ -46,7 +48,7 @@ class Message extends Config {
   async getMessages(conversationId: string): Promise<GetMessageResponse[]> {
     try {
       const result = await this.db.getAllAsync(
-        `SELECT id, role, content, created, is_deleted as isDeleted FROM messages WHERE conversation_id = ? ORDER BY created DESC`,
+        `SELECT id, role, content, created, is_deleted as isDeleted, status FROM messages WHERE conversation_id = ? ORDER BY created DESC`,
         conversationId,
       );
       if (!result) return [];
@@ -62,6 +64,28 @@ class Message extends Config {
       await this.db.runAsync(`UPDATE messages SET is_deleted = 1, deleted = CURRENT_TIMESTAMP WHERE id = ?`, messageId);
     } catch (error) {
       console.error("Error deleting message:", error);
+    }
+  }
+
+  async putMessage(message: PutMessageRequire): Promise<void> {
+    try {
+      const existingMessage = await this.db.getFirstAsync(`SELECT id FROM messages WHERE id = ?`, message.id);
+
+      if (existingMessage) {
+        await this.db.runAsync(
+          `UPDATE messages SET conversation_id = ?, role = ?, content = ?, created = ?, status = ? WHERE id = ?`,
+          message.conversationId,
+          message.role,
+          message.content,
+          formatterDate(message.created),
+          message.status ?? null,
+          message.id,
+        );
+      } else {
+        await this.postMessage(message);
+      }
+    } catch (error) {
+      console.error("Error updating message:", error);
     }
   }
 }

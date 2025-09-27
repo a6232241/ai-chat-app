@@ -5,7 +5,7 @@ import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
-  data: Pick<MessageType, "role" | "content" | "id"> & { status?: "error" };
+  data: Pick<MessageType, "role" | "content" | "id" | "status">;
   onResendMessage?: (id: string) => Promise<void>;
 };
 

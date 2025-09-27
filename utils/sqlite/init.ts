@@ -2,7 +2,7 @@ import { SQLiteDatabase } from "expo-sqlite";
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<{ success: boolean }> {
   try {
-    const DATABASE_VERSION = 3;
+    const DATABASE_VERSION = 4;
     let currentDbVersion =
       (await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))?.user_version ?? null;
 
@@ -80,6 +80,31 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<{ success: 
       `);
 
       currentDbVersion = 3;
+    }
+
+    if (currentDbVersion === 3) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS messages_new (
+          id TEXT PRIMARY KEY,
+          conversation_id TEXT NOT NULL,
+          role TEXT NOT NULL CHECK (role IN ('user', 'assistant', 'system', 'developer')),
+          content TEXT NOT NULL,
+          created TEXT DEFAULT CURRENT_TIMESTAMP,
+          is_deleted INTEGER DEFAULT 0,
+          deleted TEXT DEFAULT NULL,
+          status TEXT DEFAULT NULL CHECK (status IN ('error')),
+          FOREIGN KEY (conversation_id) REFERENCES conversations (id)
+        );
+
+        INSERT INTO messages_new (id, conversation_id, role, content, created, is_deleted, deleted, status)
+        SELECT id, conversation_id, role, content, created, is_deleted, deleted, NULL FROM messages;
+
+        DROP TABLE messages;
+
+        ALTER TABLE messages_new RENAME TO messages;
+      `);
+
+      currentDbVersion = 4;
     }
 
     await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
