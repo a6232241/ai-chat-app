@@ -1,49 +1,47 @@
-import Refresh from "@/assets/icons/refresh.svg";
 import { MessageType } from "@/utils/Apis/Sqlite/Message/types";
 import { useTheme } from "@react-navigation/native";
+import * as Clipboard from "expo-clipboard";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { NativeSyntheticEvent, Text } from "react-native";
+import ContextMenu, { ContextMenuOnPressNativeEvent } from "react-native-context-menu-view";
 
 type Props = {
   data: Pick<MessageType, "role" | "content" | "id" | "status">;
-  onResendMessage?: (id: string) => Promise<void>;
+  onDeleteMessage: (id: string) => Promise<void>;
 };
 
-const Content: React.FC<Props> = ({ data: { role, content, status, id }, onResendMessage }) => {
+const actions = [{ title: "複製" }, { title: "刪除" }];
+
+const Content: React.FC<Props> = ({ data: { role, content, status, id }, onDeleteMessage }) => {
   const {
     colors: { text: color, primary },
   } = useTheme();
 
+  const handlePress = async (e: NativeSyntheticEvent<ContextMenuOnPressNativeEvent>) => {
+    // 立即提取事件數據以避免合成事件被回收
+    const menuIndex = e.nativeEvent.index;
+
+    if (menuIndex === 0) {
+      await Clipboard.setStringAsync(content);
+    }
+    if (menuIndex === 1) {
+      await onDeleteMessage(id);
+    }
+  };
+
   return (
     <>
-      <View
-        style={{
-          flexDirection: "row",
-          ...((role === "user" || role === "system") && { justifyContent: "flex-end" }),
-        }}>
-        <View
+      <ContextMenu actions={actions} onPress={handlePress}>
+        <Text
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 10,
-            ...((role === "user" || role === "system") && { maxWidth: "80%" }),
+            padding: 10,
+            borderRadius: 5,
+            color,
+            ...((role === "user" || role === "system") && { backgroundColor: primary }),
           }}>
-          {status === "error" && (
-            <TouchableOpacity style={{ width: 30, height: 30 }} onPress={() => onResendMessage?.(id)}>
-              <Refresh width={"100%"} height={"100%"} color={color} />
-            </TouchableOpacity>
-          )}
-          <Text
-            style={{
-              padding: 10,
-              borderRadius: 5,
-              color,
-              ...((role === "user" || role === "system") && { backgroundColor: primary }),
-            }}>
-            {content}
-          </Text>
-        </View>
-      </View>
+          {content}
+        </Text>
+      </ContextMenu>
     </>
   );
 };

@@ -1,36 +1,45 @@
-import * as Clipboard from "expo-clipboard";
+import Refresh from "@/assets/icons/refresh.svg";
+import { useTheme } from "@react-navigation/native";
 import React, { ComponentProps } from "react";
-import { NativeSyntheticEvent, Platform } from "react-native";
-import ContextMenu, { ContextMenuOnPressNativeEvent } from "react-native-context-menu-view";
+import { Platform, TouchableOpacity, View } from "react-native";
 import Content from "./Content";
+import ContentWeb from "./Content.web";
 
 type Props = ComponentProps<typeof Content> & {
-  onDeleteMessage: (id: string) => Promise<void>;
+  onResendMessage?: (id: string) => Promise<void>;
 };
 
-const actions = [{ title: "複製" }, { title: "刪除" }];
-
-const Message: React.FC<Props> = ({ onDeleteMessage, ...props }) => {
-  const handlePress = async (e: NativeSyntheticEvent<ContextMenuOnPressNativeEvent>) => {
-    // 立即提取事件數據以避免合成事件被回收
-    const menuIndex = e.nativeEvent.index;
-
-    if (menuIndex === 0) {
-      await Clipboard.setStringAsync(props.data.content);
-    }
-    if (menuIndex === 1) {
-      await onDeleteMessage(props.data.id);
-    }
-  };
+const Message: React.FC<Props> = ({ onResendMessage, ...props }) => {
+  const { role, status, id } = props.data;
+  const {
+    colors: { text: color },
+  } = useTheme();
 
   return (
     <>
       {Platform.OS === "ios" && parseInt(Platform.Version, 10) <= 12 ? (
-        <Content {...props} />
+        <ContentWeb {...props} />
       ) : (
-        <ContextMenu actions={actions} onPress={handlePress}>
-          <Content {...props} />
-        </ContextMenu>
+        <View
+          style={{
+            flexDirection: "row",
+            ...((role === "user" || role === "system") && { justifyContent: "flex-end" }),
+          }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              ...((role === "user" || role === "system") && { maxWidth: "80%" }),
+            }}>
+            {status === "error" && (
+              <TouchableOpacity style={{ width: 30, height: 30 }} onPress={() => onResendMessage?.(id)}>
+                <Refresh width={"100%"} height={"100%"} color={color} />
+              </TouchableOpacity>
+            )}
+            <Content {...props} />
+          </View>
+        </View>
       )}
     </>
   );
